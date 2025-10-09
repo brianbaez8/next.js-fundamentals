@@ -1,15 +1,16 @@
 'use server'
 
-import { z } from 'zod'
 import {
-  verifyPassword,
   createSession,
   createUser,
   deleteSession,
+  verifyPassword,
 } from '@/lib/auth'
+
 import { getUserByEmail } from '@/lib/dal'
 import { mockDelay } from '@/lib/utils'
 import { redirect } from 'next/navigation'
+import { z } from 'zod'
 
 // Define Zod schema for signin validation
 const SignInSchema = z.object({
@@ -37,4 +38,124 @@ export type ActionResponse = {
   message: string
   errors?: Record<string, string[]>
   error?: string
+}
+
+export const signIn = async (formData: FormData): Promise<ActionResponse> => {
+  try {
+    await mockDelay(700)
+
+    const data = {
+      email: formData.get('string') as string,
+      password: formData.get('password') as string,
+    }
+
+    const validationResult = SignInSchema.safeParse(data)
+    if (!validationResult.success) {
+      return {
+        success: false,
+        message: 'Validation Failed',
+        errors: validationResult.error.flatten().fieldErrors,
+      }
+    }
+
+    const user = await getUserByEmail(data.email)
+    if (!user) {
+      return {
+        success: false,
+        message: 'Invalid email or password',
+        errors: {
+          email: ['Invalid email or password'],
+        },
+      }
+    }
+
+    const isPasswordValid = await verifyPassword(data.password, user.password)
+
+    if (!isPasswordValid) {
+      return {
+        success: false,
+        message: 'Invalid email or password',
+        errors: {
+          email: ['Invalid email or password'],
+        },
+      }
+    }
+
+    await createSession(user.id)
+
+    return {
+      success: true,
+      message: 'Signed in successfully',
+    }
+  } catch (err) {
+    console.error(err)
+    return {
+      success: false,
+      message: 'Something went wrong',
+      error: 'Something went wrong',
+    }
+  }
+}
+
+export const signUp = async (formData: FormData): Promise<ActionResponse> => {
+  await mockDelay(700)
+  try {
+    const data = {
+      email: formData.get('email') as string,
+      password: formData.get('password') as string,
+      confirmedPassword: formData.get('confirmedPassword') as string,
+    }
+
+    const validationResult = SignUpSchema.safeParse(data)
+
+    if (!validationResult.success) {
+      return {
+        success: false,
+        message: 'Validation failed',
+        errors: validationResult.error.flatten().fieldErrors,
+      }
+    }
+
+    const existingUser = await getUserByEmail(data.email)
+
+    if (existingUser) {
+      return {
+        success: false,
+        message: 'User with this email already exist',
+      }
+    }
+
+    const user = await createUser(data.email, data.password)
+
+    if (!user) {
+      return {
+        success: false,
+        message: 'Account could not be created',
+      }
+    }
+
+    await createSession(user.id)
+
+    return {
+      success: true,
+      message: 'Account created',
+    }
+  } catch (e) {
+    console.error(e)
+    return {
+      success: false,
+      message: 'Account could not be created',
+    }
+  }
+}
+
+export const signOut = async () => {
+  try {
+    await deleteSession()
+  } catch (e) {
+    console.error(e)
+    throw e
+  } finally {
+    redirect('/signin')
+  }
 }
