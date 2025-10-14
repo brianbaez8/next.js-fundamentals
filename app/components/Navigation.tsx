@@ -1,8 +1,9 @@
+import { HomeIcon, LogInIcon, PlusIcon } from 'lucide-react'
+
 import Link from 'next/link'
-import { HomeIcon, PlusIcon, LogInIcon } from 'lucide-react'
-import UserEmail from './UserEmail'
-import { Suspense } from 'react'
 import NavLink from './NavLink'
+import { Suspense } from 'react'
+import UserEmail from './UserEmail'
 
 export default function Navigation() {
   return (

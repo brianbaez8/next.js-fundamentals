@@ -103,7 +103,7 @@ export const signUp = async (formData: FormData): Promise<ActionResponse> => {
     const data = {
       email: formData.get('email') as string,
       password: formData.get('password') as string,
-      confirmedPassword: formData.get('confirmedPassword') as string,
+      confirmPassword: formData.get('confirmPassword') as string,
     }
 
     const validationResult = SignUpSchema.safeParse(data)
