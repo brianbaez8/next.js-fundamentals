@@ -1,5 +1,6 @@
 import { ISSUE_PRIORITY, ISSUE_STATUS } from '@/db/schema'
 import { Priority, Status } from '@/lib/types'
+import { getCurrentUser, getIssues } from '@/lib/dal'
 
 import Badge from '../components/ui/Badge'
 import Button from '../components/ui/Button'
@@ -7,9 +8,9 @@ import Link from 'next/link'
 import { PlusIcon } from 'lucide-react'
 import { Suspense } from 'react'
 import { formatRelativeTime } from '@/lib/utils'
-import { getIssues } from '@/lib/dal'
 
 export default async function DashboardPage() {
+  await getCurrentUser()
   const issues = await getIssues()
 
   return (

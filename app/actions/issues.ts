@@ -8,6 +8,7 @@ import { error } from 'console'
 import { getCurrentUser } from '@/lib/dal'
 import { mockDelay } from '@/lib/utils'
 import { redirect } from 'next/navigation'
+import { revalidateTag } from 'next/cache'
 import { z } from 'zod'
 
 // Define Zod schema for issue validation
@@ -28,7 +29,6 @@ const IssueSchema = z.object({
   }),
   userId: z.string().min(1, 'User ID is required'),
 })
-
 export type IssueData = z.infer<typeof IssueSchema>
 
 export type ActionResponse = {
@@ -70,6 +70,7 @@ export async function createIssue(data: IssueData): Promise<ActionResponse> {
       userId: validatedData.userId,
     })
 
+    revalidateTag('issues')
     return { success: true, message: 'Issue created successfully' }
   } catch (error) {
     console.error('Error creating issue:', error)
