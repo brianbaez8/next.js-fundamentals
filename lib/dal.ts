@@ -8,7 +8,6 @@ import { getSession } from './auth'
 import { mockDelay } from './utils'
 
 export const getCurrentUser = cache(async () => {
-  console.log('calling get current user')
   await mockDelay(1000)
   const session = await getSession()
   if (!session) return null
